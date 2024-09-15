@@ -1,0 +1,1 @@
+python ./main.py --fname ./configs/pretrain/pets_vitt16_ep300.yaml --devices cuda:0 cuda:1 cuda:2 cuda:3  --task pretrain
