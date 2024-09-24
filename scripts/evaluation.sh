@@ -1,1 +1,1 @@
-python main.py --fname ./configs/evaluation/stanford_cars/linear_in1k_vith14_ep200.yaml --task evaluation --devices cuda:1 cuda:2 cuda:3
+python main.py --fname ./configs/evaluation/caltech101/full_in1k_vith14_ep200.yaml --task evaluation --devices cuda:1 cuda:2 cuda:3

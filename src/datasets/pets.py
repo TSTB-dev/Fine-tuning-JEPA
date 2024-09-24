@@ -128,21 +128,22 @@ class PetsDatasetLMDB(Dataset):
             
 
 if __name__ == "__main__":
-    # dataset = PetsDataset(root="data", download=True)
-    # print(len(dataset))
+    dataset = PetsDataset(root="data", download=True, train=False)
+    print(len(dataset))
     # print(dataset[0]["image"].size)
     import os
     import sys
     sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
     from src.datasets.util import save_to_lmdb
-    # save_to_lmdb(PetsDataset(root="data", download=True), "data/pets.lmdb")
+    save_to_lmdb(PetsDataset(root="data", download=True), "data/pets.lmdb")
     trans = transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.ToTensor(),
     ])
-    dataset = PetsDatasetLMDB("data/pets.lmdb", transform=trans)
+    dataset = PetsDatasetLMDB("data/pets.lmdb", transform=trans, train=False)
+    print(f"Number of samples: {len(dataset)}")
     
-    dataloader = torch.utils.data.DataLoader(dataset, batch_size=32, shuffle=True, num_workers=4, worker_init_fn=worker_init_fn)
+    dataloader = torch.utils.data.DataLoader(dataset, batch_size=32, shuffle=True, num_workers=4)
     for batch in dataloader:
         print(batch["image"].size())
         break

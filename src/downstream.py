@@ -52,7 +52,7 @@ from src.transforms import make_transforms
 
 log_timings = True
 log_freq = 1
-checkpoint_freq = 50
+checkpoint_freq = 100
 
 _GLOBAL_SEED = 0
 np.random.seed(_GLOBAL_SEED)
@@ -94,6 +94,7 @@ def main(args, resume_preempt=False):
     patch_size = args['model']['patch_size']
     
     # Training settings
+    scheduler_type = args['optimization']['scheduler_type']
     wd = float(args['optimization']['weight_decay'])
     final_wd = float(args['optimization']['final_weight_decay'])
     num_epochs = args['optimization']['epochs']
@@ -246,6 +247,7 @@ def main(args, resume_preempt=False):
         final_wd=final_wd,
         final_lr=final_lr,
         use_bfloat16=use_bfloat16,
+        scheduler_type=scheduler_type,
     )
     
     def save_checkpoint(epoch, loss_meter):

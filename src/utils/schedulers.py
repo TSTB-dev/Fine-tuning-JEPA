@@ -1,6 +1,29 @@
 
 import math
 
+class LinearDecaySchedule(object):
+    def __init__(
+        self,
+        optimizer,
+        start_lr,
+        final_lr,
+        T_max,
+        last_epoch=-1
+    ):
+        self.optimizer = optimizer
+        self.start_lr = start_lr
+        self.final_lr = final_lr
+        self.T_max = T_max
+        self._step = 0.
+        
+    def step(self):
+        self._step += 1
+        new_lr = self.start_lr - (self.start_lr - self.final_lr) * (self._step / self.T_max)
+        for group in self.optimizer.param_groups:
+            group['lr'] = new_lr
+        return new_lr
+        
+
 class WarmupCosineSchedule(object):
     def __init__(
         self,

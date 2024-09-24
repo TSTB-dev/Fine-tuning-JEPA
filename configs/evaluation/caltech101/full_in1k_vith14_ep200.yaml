@@ -1,0 +1,18 @@
+data:
+  batch_size: 128
+  crop_size: 224
+  image_folder: caltech101/
+  lmdb_path: caltech101.lmdb
+  num_workers: 1
+  prefetch_factor: 1
+  pin_mem: true
+  root_path: data/caltech101.lmdb
+logging:
+  folder: logs/evaluation/caltech101/full_in1k_vith14_ep200/
+  write_tag: jepa_eval
+meta:
+  dataset_name: caltech101
+  model_name: vit_huge
+  read_checkpoint: logs/downstream/caltech101/full_in1k_vith14_ep200/jepa_full-latest.pth.tar
+model:
+  patch_size: 14

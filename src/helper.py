@@ -7,6 +7,7 @@ import src.models.vision_transformer as vit
 from src.models.vision_transformer import VisionTransformer, VisionTransformerPredictor
 from src.utils.schedulers import (
     WarmupCosineSchedule,
+    LinearDecaySchedule,
     CosineWDSchedule)
 from src.utils.tensors import trunc_normal_
 
@@ -132,7 +133,8 @@ def init_opt(
     final_wd=1e-6,
     final_lr=0.,
     use_bfloat16=False,
-    ipe_scale=1.25
+    ipe_scale=1.25,
+    scheduler_type="cosine"
 ):
     # exclude bias and layernorm parameters from weight decay
     param_groups = [
@@ -153,14 +155,24 @@ def init_opt(
     
     logger.info('Using AdamW')
     optimizer = torch.optim.AdamW(param_groups)
-    scheduler = WarmupCosineSchedule(
-        optimizer,
-        warmup_steps=int(warmup * iterations_per_epoch),
-        start_lr=start_lr,
-        ref_lr=ref_lr,
-        final_lr=final_lr,
-        T_max=int(ipe_scale * num_epochs * iterations_per_epoch),
-    )
+    if scheduler_type == "cosine":
+        scheduler = WarmupCosineSchedule(
+            optimizer,
+            warmup_steps=int(warmup * iterations_per_epoch),
+            start_lr=start_lr,
+            ref_lr=ref_lr,
+            final_lr=final_lr,
+            T_max=int(ipe_scale * num_epochs * iterations_per_epoch),
+        )
+    elif scheduler_type == "linear":
+        scheduler = LinearDecaySchedule(
+            optimizer,
+            start_lr=start_lr,
+            final_lr=final_lr,
+            T_max=int(ipe_scale * num_epochs * iterations_per_epoch),
+        )
+    else:
+        raise ValueError(f"Scheduler type {scheduler_type} not recognized")
     wd_scheduler = CosineWDSchedule(
         optimizer,
         ref_wd=wd,
@@ -225,7 +237,8 @@ def init_opt_for_downstream(
     final_wd: float=1e-6,
     final_lr: float=0.,
     use_bfloat16: bool=False,
-    ipe_scale: float=1.25
+    ipe_scale: float=1.25,
+    scheduler_type: str="cosine"
 ):
     if strategy == "linear":
         param_groups = [{'params': (p for n, p in encoder.named_parameters() if 'head' in n)}]
@@ -243,14 +256,24 @@ def init_opt_for_downstream(
     # Optimizer for downstream task
     logger.info('Using AdamW')
     optimizer = torch.optim.AdamW(param_groups)
-    scheduler = WarmupCosineSchedule(
-        optimizer,
-        warmup_steps=int(warmup * iterations_per_epoch),
-        start_lr=start_lr,
-        ref_lr=ref_lr,
-        final_lr=final_lr,
-        T_max=int(ipe_scale * num_epochs * iterations_per_epoch),
-    )
+    if scheduler_type == "cosine":
+        scheduler = WarmupCosineSchedule(
+            optimizer,
+            warmup_steps=int(warmup * iterations_per_epoch),
+            start_lr=start_lr,
+            ref_lr=ref_lr,
+            final_lr=final_lr,
+            T_max=int(ipe_scale * num_epochs * iterations_per_epoch),
+        )
+    elif scheduler_type == "linear":
+        scheduler = LinearDecaySchedule(
+            optimizer,
+            start_lr=start_lr,
+            final_lr=final_lr,
+            T_max=int(ipe_scale * num_epochs * iterations_per_epoch),
+        )
+    else:
+        raise ValueError(f"Scheduler type {scheduler_type} not recognized")
     wd_scheduler = CosineWDSchedule(
         optimizer=optimizer,
         ref_wd=wd,

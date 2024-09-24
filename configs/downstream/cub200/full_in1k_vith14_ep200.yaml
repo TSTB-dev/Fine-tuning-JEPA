@@ -5,20 +5,20 @@ data:
   - 0.3
   - 1.0
   crop_size: 224
-  image_folder: pets/
-  lmdb_path: pets.lmdb
+  image_folder: cub200/
+  lmdb_path: cub200.lmdb
   num_workers: 1
   prefetch_factor: 1
   pin_mem: true
-  root_path: data/pets.lmdb
+  root_path: data/cub200.lmdb
   use_color_distortion: false
   use_gaussian_blur: false
   use_horizontal_flip: false
 logging:
-  folder: logs/downstream/pets/full_in1k_vith14_ep200/
+  folder: logs/downstream/cub200/full_in1k_vith14_ep200/
   write_tag: jepa_full
 meta:
-  dataset_name: pets
+  dataset_name: cub200
   strategy: full
   copy_data: false
   load_checkpoint: true
