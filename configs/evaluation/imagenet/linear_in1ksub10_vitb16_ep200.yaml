@@ -1,0 +1,19 @@
+data:
+  batch_size: 128
+  crop_size: 224
+  image_folder: data/imagenet/
+  lmdb_path: null
+  num_workers: 1
+  prefetch_factor: 1
+  pin_mem: true
+  root_path: data/imagenet
+logging:
+  folder: logs/evaluation/imagenet/linear_in1ksub10_vitb16_ep200/
+  write_tag: jepa_eval
+meta:
+  dataset_name: imagenet
+  num_samples_per_class: 10
+  model_name: vit_base
+  read_checkpoint: /home/haselab/projects/sakai/Fine-tuning-JEPA/logs/downstream/imagenet/linear_in1ksub10_vitb16_ep200/jepa_linear-latest.pth.tar
+model:
+  patch_size: 16

@@ -4,8 +4,12 @@ from .cub import CUB200Dataset
 from .flowers import Flowers102Dataset, Flowers102DatasetLMDB
 from .pets import PetsDataset, PetsDatasetLMDB
 from .cars import StanfordCarsDataset, StanfordCarsDatasetLMDB
+from .imagenet_1k import ImageNetDataset, ImageNetSubsetDataset
 
 import torch
+
+import logging
+logger = logging.getLogger(__name__)
 
 __all__ = [
     "Caltech101Dataset",
@@ -19,6 +23,8 @@ __all__ = [
     "PetsDatasetLMDB",
     "StanfordCarsDataset",
     "StanfordCarsDatasetLMDB",
+    "ImageNetDataset",
+    "ImageNetSubsetDataset",
 ]
 
 def make_dataset(name, **kwargs):
@@ -36,5 +42,11 @@ def make_dataset(name, **kwargs):
         return PetsDataset(**kwargs)
     elif name == "stanford_cars":
         return StanfordCarsDataset(**kwargs)
+    elif name == "imagenet":
+        kwargs["download"] = False
+        if "num_samples_per_class" in kwargs:
+            logger.info("Using ImageNetSubsetDataset")
+            return ImageNetSubsetDataset(**kwargs)
+        return ImageNetDataset(**kwargs)
     else:
         raise ValueError(f"Unknown dataset: {name}")

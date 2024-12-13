@@ -65,6 +65,9 @@ logger = logging.getLogger()
 def main(args, resume_preempt=False):
     use_bfloat16 = args['meta']['use_bfloat16']
     dataset_name = args['meta']['dataset_name']
+    num_samples_per_class = args['meta']['num_samples_per_class'] 
+    if num_samples_per_class is None:
+        num_samples_per_class = -1
     model_name = args['meta']['model_name']
     load_pretrained_model = args['meta']['load_checkpoint'] or resume_preempt
     r_file = args['meta']['read_checkpoint']
@@ -167,6 +170,7 @@ def main(args, resume_preempt=False):
         transform=transform,
         download=True,
         train=True,
+        num_samples_per_class=num_samples_per_class,
     )
     test_dataset = make_dataset(
         dataset_name,
@@ -175,6 +179,7 @@ def main(args, resume_preempt=False):
         transform=transform,
         download=True,
         train=False,
+        num_samples_per_class=num_samples_per_class,
     )
     
     train_sampler = torch.utils.data.distributed.DistributedSampler(
@@ -192,10 +197,10 @@ def main(args, resume_preempt=False):
         batch_size=batch_size,
         pin_memory=pin_mem,
         num_workers=num_workers,
-        persistent_workers=True,
+        persistent_workers=False,
         prefetch_factor=prefetch_factor,
         drop_last=True,
-        worker_init_fn=worker_init_fn,
+        # worker_init_fn=worker_init_fn,
     )
     test_loader = torch.utils.data.DataLoader(
         test_dataset,
@@ -203,10 +208,10 @@ def main(args, resume_preempt=False):
         batch_size=batch_size,
         pin_memory=pin_mem,
         num_workers=num_workers,
-        persistent_workers=True,
+        persistent_workers=False,
         prefetch_factor=prefetch_factor,
         drop_last=True,
-        worker_init_fn=worker_init_fn,
+        # worker_init_fn=worker_init_fn,
     )
     ipe = len(train_loader)
     

@@ -3,6 +3,7 @@ from .cub import CUB200Dataset, CUB200DatasetLMDB
 from .flowers import Flowers102Dataset, Flowers102DatasetLMDB
 from .pets import PetsDataset, PetsDatasetLMDB
 from .cars import StanfordCarsDataset, StanfordCarsDatasetLMDB
+from .imagenet_1k import ImageNetDataset, ImageNetSubsetDataset
 
 import torch
 import lmdb
@@ -30,7 +31,10 @@ __all__ = [
 def worker_init_fn(worker_id):
     worker_info = torch.utils.data.get_worker_info()
     dataset = worker_info.dataset
-    dataset.env = lmdb.open(dataset.lmdb_path, readonly=True, lock=False)
+    if hasattr(dataset, "lmdb_path"):
+        dataset.env = lmdb.open(dataset.lmdb_path, readonly=True, lock=False)
+    else:
+        dataset.env = None
 
 def make_dataset(name, is_lmdb: bool = False, **kwargs):
     if name == "caltech101":
@@ -43,6 +47,12 @@ def make_dataset(name, is_lmdb: bool = False, **kwargs):
         return PetsDataset(**kwargs) if not is_lmdb else PetsDatasetLMDB(**kwargs)
     elif name == "stanford_cars":
         return StanfordCarsDataset(**kwargs) if not is_lmdb else StanfordCarsDatasetLMDB(**kwargs)
+    elif name == "imagenet":
+        kwargs["download"] = False
+        if "num_samples_per_class" in kwargs and kwargs["num_samples_per_class"] > 0:
+            return ImageNetSubsetDataset(**kwargs)
+        kwargs.pop("num_samples_per_class", None)
+        return ImageNetDataset(**kwargs)
     else:
         raise ValueError(f"Unknown dataset: {name}")
 

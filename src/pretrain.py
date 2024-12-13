@@ -67,6 +67,7 @@ logger = logging.getLogger()
 def main(args, resume_preempt=False):
     use_bfloat16 = args['meta']['use_bfloat16']
     dataset_name = args['meta']['dataset_name']
+    num_samples_per_class = args['meta']['num_samples_per_class']
     model_name = args['meta']['model_name']
     load_model = args['meta']['load_checkpoint'] or resume_preempt
     r_file = args['meta']['read_checkpoint']
@@ -191,13 +192,15 @@ def main(args, resume_preempt=False):
         root=root_path,
         transform=transforms,
         train=True,
+        num_samples_per_class=num_samples_per_class
     )
     test_dataset = make_dataset(
         dataset_name,
         lmdb_path is not None,
         root=root_path,
         transform=transforms,
-        train=False
+        train=False,
+        num_samples_per_class=num_samples_per_class
     )
         
     train_sampler = torch.utils.data.distributed.DistributedSampler(
@@ -218,7 +221,7 @@ def main(args, resume_preempt=False):
         persistent_workers=False,
         prefetch_factor=prefetch_factor,
         drop_last=True,
-        worker_init_fn=worker_init_fn
+        # worker_init_fn=worker_init_fn
     )
     test_loader = torch.utils.data.DataLoader(
         test_dataset,
@@ -230,7 +233,7 @@ def main(args, resume_preempt=False):
         persistent_workers=False,
         prefetch_factor=prefetch_factor,
         drop_last=True,
-        worker_init_fn=worker_init_fn
+       #  worker_init_fn=worker_init_fn
     )
     ipe = len(train_loader)
     
@@ -318,6 +321,7 @@ def main(args, resume_preempt=False):
                 masks_1 = [m.to(device, non_blocking=True) for m in masks_enc]  # [(B, min_keep_enc), (B, min_keep_enc), ...]
                 masks_2 = [m.to(device, non_blocking=True) for m in masks_pred]   # [(B, min_keep_pred), (B, min_keep_pred), ...]
                 return imgs, masks_1, masks_2
+            
             imgs, masks_enc, masks_pred = load_imgs()
             elapsed_ms = (time.time() - s) * 1000
             data_time_meter.update(elapsed_ms)

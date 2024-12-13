@@ -62,6 +62,9 @@ logger = logging.getLogger()
 
 def main(args, resume_preempt=False):
     dataset_name = args['meta']['dataset_name']
+    num_samples_per_class = args['meta']['num_samples_per_class'] 
+    if num_samples_per_class is None:
+        num_samples_per_class = -1
     model_name = args['meta']['model_name']
     load_path = args['meta']['read_checkpoint']
     
@@ -132,6 +135,7 @@ def main(args, resume_preempt=False):
         transform=transform,
         download=True,
         train=True,
+        num_samples_per_class=num_samples_per_class,
     )
     test_dataset = make_dataset(
         dataset_name,
@@ -140,6 +144,7 @@ def main(args, resume_preempt=False):
         transform=transform,
         download=True,
         train=False,
+        num_samples_per_class=num_samples_per_class,
     )
     
     train_sampler = torch.utils.data.distributed.DistributedSampler(
@@ -160,7 +165,7 @@ def main(args, resume_preempt=False):
         persistent_workers=False,
         prefetch_factor=prefetch_factor,
         drop_last=False,
-        worker_init_fn=worker_init_fn,
+        # worker_init_fn=worker_init_fn,
     )
     test_loader = torch.utils.data.DataLoader(
         test_dataset,
@@ -171,7 +176,7 @@ def main(args, resume_preempt=False):
         persistent_workers=False,
         prefetch_factor=prefetch_factor,
         drop_last=False,
-        worker_init_fn=worker_init_fn,
+        # worker_init_fn=worker_init_fn,
     )
     ipe = len(train_loader)
     num_samples_train = len(train_dataset)
@@ -193,6 +198,7 @@ def main(args, resume_preempt=False):
     train_loss = 0.
     train_correct = 0
     train_loader.sampler.set_epoch(0)
+    log_freq = 100
     with torch.no_grad():
         for i, data in enumerate(train_loader):
             images = data['image'].to(device)
@@ -207,6 +213,9 @@ def main(args, resume_preempt=False):
             correct = predicted.eq(labels).sum()
             correct = AllReduceSum.apply(correct)  # sum correct predictions across all processes
             train_correct += correct.item()
+
+            if i % log_freq == 0:
+                logging.info(f"Batch: {i}/{len(train_loader)}, Loss: {loss.item():.4f}, Acc: {100. * correct.item() / batch_size:.2f}")
     
     train_acc = 100. * train_correct / num_samples_train
     train_loss = train_loss / ipe
@@ -233,6 +242,9 @@ def main(args, resume_preempt=False):
             correct = predicted.eq(labels).sum()
             correct = AllReduceSum.apply(correct)  # sum correct predictions across all processes
             test_correct += correct.item()
+        
+            if i % log_freq == 0:
+                logging.info(f"Batch: {i}/{len(test_loader)}, Loss: {loss.item():.4f}, Acc: {100. * correct.item() / batch_size:.2f}")
     
     test_acc = 100. * test_correct / num_samples_test
     test_loss = test_loss / ipe
