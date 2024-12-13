@@ -112,10 +112,10 @@ def main():
             logger.error(f"Failed to load cub200 dataset from LMDB: {args.root}/cub200.lmdb")
             logger.error(e)
     elif "imagenet" in args.dataset_name:
-        train_dataset = ImageNetDataset(root=args.root, split='train', download=args.download)
+        train_dataset = ImageNetDataset(root=args.root, train=True, download=args.download)
         # save_to_lmdb(train_dataset, os.path.join(args.root, "imagenet_1k.lmdb"), split="train")
         logger.info(f"Saved imagenet_1k dataset to LMDB: {args.root}/imagenet_1k.lmdb")
-        test_dataset = ImageNetDataset(root=args.root, split='val', download=args.download)
+        test_dataset = ImageNetDataset(root=args.root, train=False, download=args.download)
         # save_to_lmdb(test_dataset, os.path.join(args.root, "imagenet_1k.lmdb"), split="test")
         logger.info(f"Saved imagenet_1k dataset to LMDB: {args.root}/imagenet_1k.lmdb")
     else:

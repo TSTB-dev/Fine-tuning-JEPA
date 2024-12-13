@@ -1,1 +1,1 @@
-python ./main.py --fname ./configs/pretrain/in1k_vitb16_ep300.yaml --devices cuda:0 cuda:1 cuda:2 cuda:3 cuda:4 cuda:5  --task pretrain
+python ./main.py --fname ./configs/pretrain/in1k_resnet50_test.yaml --devices cuda:0 cuda:1 cuda:2 cuda:3  --task pretrain

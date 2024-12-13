@@ -4,10 +4,17 @@ from PIL import ImageFilter
 
 import torch
 import torchvision.transforms as transforms
+from torchvision.transforms.v2 import CutMix, MixUp
+from torchvision.transforms import RandAugment
+from torchvision.transforms import functional as F
 
 logger = getLogger()
 
 def make_transforms(
+    num_classes,
+    rand_augment=True, 
+    mix_up=True, 
+    cut_mix=True,
     crop_size=224,
     crop_scale=(0.3, 1.0),
     color_jitter=1.0,
@@ -30,6 +37,14 @@ def make_transforms(
     
     transforms_list = []
     transforms_list += [transforms.RandomResizedCrop(crop_size, scale=crop_scale)]
+
+    transform_list = []
+    if rand_augment:
+        transform_list += [RandAugment(num_ops=2, magnitude=15)]
+    if mix_up:
+        transform_list += [MixUp(num_classes=num_classes)]
+    if cut_mix:
+        transform_list += [CutMix(num_classes=num_classes)]
     if horizontal_flip:
         transforms_list += [transforms.RandomHorizontalFlip()]
     if color_distortion:

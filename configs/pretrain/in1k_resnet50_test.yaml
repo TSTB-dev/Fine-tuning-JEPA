@@ -1,0 +1,41 @@
+data:
+  num_classes: 1000
+  batch_size: 128
+  color_jitter_strength: 0.2
+  rand_augment: true
+  cut_mix: true
+  mix_up: true
+  crop_scale:
+  - 0.3
+  - 1.0
+  crop_size: 224
+  image_folder: data/imagenet
+  lmdb_path: null
+  num_workers: 1
+  prefetch_factor: 1
+  pin_mem: true
+  root_path: data/imagenet
+  use_color_distortion: true
+  use_gaussian_blur: true
+  use_horizontal_flip: true
+logging:
+  folder: logs/in1k_resnet50_test/
+  write_tag: scratch
+meta:
+  dataset_name: imagenet
+  num_samples_per_class: -1
+  copy_data: false
+  pre_trained: false
+  load_checkpoint: false
+  model_name: resnet50
+  read_checkpoint: null
+  use_bfloat16: false
+optimization:
+  epochs: 3
+  final_lr: 1.0e-06
+  final_weight_decay: 0.4
+  ipe_scale: 1.0
+  lr: 0.001
+  start_lr: 0.0002
+  warmup: 40
+  weight_decay: 0.04

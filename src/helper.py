@@ -2,6 +2,7 @@ import logging
 import sys
 
 import torch
+from torchvision import models
 
 import src.models.vision_transformer as vit
 from src.models.vision_transformer import VisionTransformer, VisionTransformerPredictor
@@ -40,32 +41,19 @@ def load_checkpoint_for_downstream(
 def load_checkpoint(
     device,
     r_path,
-    encoder, 
-    predictor,
-    target_encoder,
+    model,
     opt,
     scaler,
 ):
     try:
         checkpoint = torch.load(r_path, map_location=torch.device('cpu'), weights_only=True)
         epoch = checkpoint['epoch']
-        
-        # -- loading encoder
-        pretrained_dict = checkpoint['encoder']
-        msg = encoder.load_state_dict(pretrained_dict)
-        logger.info(f'loaded pretrained encoder from epoch {epoch} with msg: {msg}')
-        
-        # -- loading predictor
-        pretrained_dict = checkpoint['predictor']
-        msg = predictor.load_state_dict(pretrained_dict)
-        logger.info(f'loaded pretrained encoder from epoch {epoch} with msg: {msg}')
-        
-        # -- loading target_encoder
-        if target_encoder is not None:
-            print(list(checkpoint.keys()))
-            pretrained_dict = checkpoint['target_encoder']
-            msg = target_encoder.load_state_dict(pretrained_dict)
-            logger.info(f'loaded pretrained encoder from epoch {epoch} with msg: {msg}')
+            
+        # -- loading model
+        if model is not None:
+            pretrained_dict = checkpoint['model']
+            msg = model.load_state_dict(pretrained_dict)
+            logger.info(f'loaded pretrained model from epoch {epoch} with msg: {msg}')
         
         # -- loading optimizer
         opt.load_state_dict(checkpoint['opt'])
@@ -79,7 +67,7 @@ def load_checkpoint(
         logger.info(f'Encountered exception when loading checkpoint {e}')
         epoch = 0
         
-    return encoder, predictor, target_encoder, opt, scaler, epoch
+    return model, opt, scaler, epoch
 
 def init_weights(m):
     if isinstance(m, torch.nn.Linear):
@@ -92,38 +80,26 @@ def init_weights(m):
         
 def init_model(
     device, 
-    patch_size=16,
-    model_name="vit_base",
-    crop_size=224,
-    pred_depth=6,
-    pred_emb_dim=384,
+    num_classes, 
+    model_name='resenet50',
+    pre_trained = False,
 ):
-    encoder = vit.__dict__[model_name](
-        img_size=[crop_size],
-        patch_size=patch_size,
-    )
-    for m in encoder.modules():
-        init_weights(m)
-    encoder.to(device)
-    logger.info(encoder)
-    
-    predictor = vit.__dict__["vit_predictor"](
-        num_patches=encoder.patch_embed.num_patches,
-        embed_dim=encoder.embed_dim,
-        predictor_embed_dim=pred_emb_dim,
-        depth=pred_depth,
-        num_heads=encoder.num_heads,
-    )
-        
-    for m in predictor.modules():
-        init_weights(m)
-    
-    predictor.to(device)
-    return encoder, predictor
+    if model_name == 'resnet50':
+        model = models.resnet50(pretrained=pre_trained)
+        model.fc = torch.nn.Linear(model.fc.in_features, num_classes)
+        model.to(device)
+    elif model_name == 'resnet101':
+        model = models.resnet101(pretrained=pre_trained)
+        model.fc = torch.nn.Linear(model.fc.in_features, num_classes)
+        model.to(device)
+    elif model_name == 'resnet152':
+        model = models.resnet152(pretrained=pre_trained)
+        model.fc = torch.nn.Linear(model.fc.in_features, num_classes)
+        model.to(device)
+    return model
 
 def init_opt(
-    encoder,
-    predictor,
+    model, 
     iterations_per_epoch,
     start_lr,
     ref_lr,
@@ -139,15 +115,9 @@ def init_opt(
     # exclude bias and layernorm parameters from weight decay
     param_groups = [
         {
-            'params': (p for n, p in encoder.named_parameters() if ('bias' not in n) and (len(p.shape) != 1)),
+            'params': (p for n, p in model.named_parameters() if ('bias' not in n) and (len(p.shape) != 1)),
         }, {
-            'params': (p for n, p in predictor.named_parameters() if ('bias' not in n) and (len(p.shape) != 1)),  
-        }, {
-            'params': (p for n, p in encoder.named_parameters() if ('bias' in n) or (len(p.shape) == 1)),
-            'weight_decay': 0.,
-            'WD_exclude': True,
-        }, {
-            'params': (p for n, p in predictor.named_parameters() if ('bias' in n) or (len(p.shape) == 1)),
+            'params': (p for n, p in model.named_parameters() if ('bias' in n) or (len(p.shape) == 1)),
             'weight_decay': 0.,
             'WD_exclude': True,
         }
