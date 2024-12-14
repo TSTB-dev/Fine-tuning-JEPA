@@ -19,7 +19,7 @@ data:
   use_gaussian_blur: true
   use_horizontal_flip: true
 logging:
-  folder: logs/in1k_resnet50_test/
+  folder: logs/in1k_resnet50/
   write_tag: scratch
 meta:
   dataset_name: imagenet
@@ -31,7 +31,7 @@ meta:
   read_checkpoint: null
   use_bfloat16: false
 optimization:
-  epochs: 3
+  epochs: 200
   final_lr: 1.0e-06
   final_weight_decay: 0.4
   ipe_scale: 1.0
