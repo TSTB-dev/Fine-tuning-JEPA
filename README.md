@@ -58,3 +58,14 @@ We report `test acc. [train acc.]` in each value in this table.
 
 ## Citation
 --
+If you want to cite this repository in your paper, you can use the following BibTeX entry:
+
+```bibtex
+@misc{finetune_jepa,
+  author = {Shunsuke Sakai},
+  title = {Finetuning_JEPA},
+  year = {2025},
+  url = {https://github.com/SkyShunsuke/Fine-tuning-JEPA}
+}
+```
+Thanks!😁
